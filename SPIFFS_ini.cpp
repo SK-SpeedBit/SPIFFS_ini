@@ -1,42 +1,16 @@
 
+
 #include <SPIFFS_ini.h>
 #include "FS.h"
- 
+
 
 File ini;
-
-String ini_read_line() {
-  if (!ini) return "";
-
-  String s = "";
-  char c = 0;
-  bool test = false;
-
-  do { // read string until CR or LF
-    if ( ini_eof() ) break;
-    c = ini.read();
-    test = (c != 13) && (c != 10);
-    if (test) s +=  c;
-  } while (test);
-
-  do { // read all CR and LF (empty lines too)
-    if ( ini_eof() ) break;
-    c = ini.peek();
-    test = (c == 13) || (c == 10);
-    if (test) ini.read();
-  } while (test);
-
-  s.trim(); // trim string
-
-  return s;
-}
 
 
 bool ini_open (String ini_name) {
   if (ini) ini_close();
 
-  if (SPIFFS.exists(ini_name))
-    ini = SPIFFS.open(ini_name, "r");
+  if (SPIFFS.exists(ini_name)) ini = SPIFFS.open(ini_name, "r");
 
   return ini;
 }
@@ -44,8 +18,36 @@ bool ini_open (String ini_name) {
 
 bool ini_eof() {
   if (!ini) return true;
+
   return (ini.available() <= 0);
 }
+
+
+String ini_read_line() {
+  if (!ini) return "";
+
+  String  s = "";
+  char    c = 0;
+  bool test = false;
+
+  do { // read string until CR or LF
+    if ( ini_eof() ) break;
+    c = ini.read();
+    test = (c != 13) && (c != 10); // not CR and not LF
+    if (test) s +=  c;
+  } while (test);
+
+  // if last char was CR then read LF (if exists)
+  if ( (c==13) && !ini_eof() ) {
+    c = ini.peek();
+    if (c == 10) ini.read();
+  }
+
+  s.trim(); // trim string
+
+  return s;
+}
+
 
 
 String ini_read(String section, String key, String def) {
@@ -58,26 +60,25 @@ String ini_read(String section, String key, String def) {
   String k = "";
   String v = "";
   bool found = false;
-  int ind = 0;
+  int  ind   = 0;
 
   ini.seek(0);
   while (!ini_eof() ) { // find section
     s = ini_read_line();
-    if ( (s.charAt(0)=='#') || (s.charAt(0)==';') ) continue; // comment - get next line
+    if ( (s.charAt(0) == '#') || (s.charAt(0) == ';') ) continue; // comment - get next line
     s.toUpperCase();
-    if ( (s.charAt(0)=='[') && (s.charAt(s.length()-1)==']') ) { // it's section
-      s.remove(0, 1);
-      s.remove( (s.length()-1), 1);
-      if ( s == section) { found = true; break; } // got it!
+    if ( (s.charAt(0) == '[') && (s.charAt(s.length() - 1) == ']') ) { // it's section
+      if ( s == "[" + section + "]") { found = true; break; } // got it!
     }
   }
-  if (found) {
+
+  if (found) { // got section
     found = false;
     while (!ini_eof() ) { // find key
       s = ini_read_line();
-      if ( (s.charAt(0)=='#') || (s.charAt(0)==';') ) continue; // comment - get next line
+      if ( (s.charAt(0) == '#') || (s.charAt(0) == ';') ) continue; // comment - get next line
       s.toUpperCase();
-      if ( (s.charAt(0)!='[') && (s.charAt(s.length()-1)!=']') ) {  // it is not next section...
+      if ( (s.charAt(0) != '[') && (s.charAt(s.length() - 1) != ']') ) {  // it is not next section...
         ind = s.indexOf('=');
         if (ind>=0) { // found "="
           k = s.substring(0, ind);
@@ -94,16 +95,16 @@ String ini_read(String section, String key, String def) {
       else break; // got next section - break
     }
   }
+
   if (found) return v;
   else return def;
 }
 
 
-//bool ini_write(String section, String key, String value) {
-String ini_write(String section, String key, String value) {
-  //if (!ini) return false;
-  if (!ini) return "";
+bool ini_write(String section, String key, String value) {
+  if (!ini) return false;
 
+  bool res = false;
   File tmpini;
   const String tmpname = "tmpwrini.ini";
 
@@ -119,8 +120,8 @@ String ini_write(String section, String key, String value) {
   bool key_found = false;
 
   String inifile = String(ini.name());
-  int ind = inifile.lastIndexOf('/');
-  String path = inifile.substring(0, ind+1);
+  int    ind     = inifile.lastIndexOf('/');
+  String path    = inifile.substring( 0, ind + 1);
   String tmpfile = path + tmpname;
 
   if (SPIFFS.exists(tmpfile)) SPIFFS.remove(tmpfile); // if exists tmpfile - remove it
@@ -133,12 +134,10 @@ String ini_write(String section, String key, String value) {
       s = ini_read_line();
       tmpini.println(s);  // save to new file
       // search for section
-      if ( (s.length() < 3) || (s.charAt(0)=='#') || (s.charAt(0)==';') ) continue; // comment - get next line
+      if ( (s.length() != (sec_upp.length() + 2) ) || (s.charAt(0) == '#') || (s.charAt(0) == ';') ) continue; // comment - get next line
       s.toUpperCase();
-      if ( (s.charAt(0)=='[') && (s.charAt(s.length()-1)==']') ) { // it's section
-        s.remove(0, 1);
-        s.remove( (s.length()-1), 1);
-        if ( s == sec_upp) { section_found = true; break; } // got it!
+      if ( (s.charAt(0) == '[') && (s.charAt(s.length() - 1) == ']') ) { // it's section
+        if ( s == "[" + sec_upp + "]" ) { section_found = true; break; } // got it!
       }
     }
     // we are inside the section
@@ -146,12 +145,12 @@ String ini_write(String section, String key, String value) {
       key_found = false;
       while ( !ini_eof() ) { // find key
         s = ini_read_line();
-        if ( (s.charAt(0)=='#') || (s.charAt(0)==';') ) { // comment - get next line
+        if ( (s.charAt(0) == '#') || (s.charAt(0) == ';') ) { // comment - get next line
           tmpini.println(s);  // comment - save to new file
           continue;
         }
         s.toUpperCase();
-        if ( (s.charAt(0)!='[') && (s.charAt(s.length()-1)!=']') ) {  // it is not next section...
+        if ( (s.charAt(0) != '[') && (s.charAt(s.length() - 1) != ']') ) {  // it is not next section...
           ind = s.indexOf('=');
           if (ind>=0) { // found "="
             k = s.substring(0, ind);
@@ -161,8 +160,8 @@ String ini_write(String section, String key, String value) {
             k.toUpperCase();
             if (k == key_upp) { // got key
               key_found = true;
-              s = key + "=" + value;
-              tmpini.println(s);  // new key - save to new file
+              res = true;
+              tmpini.println( key + "=" + value );  // new key - save to new file
               break;
             }
             else
@@ -178,12 +177,10 @@ String ini_write(String section, String key, String value) {
       }
     }
     else { // there is no such section - save new one
-       // save new section
-      s = "[" + section + "]";
-      tmpini.println(s);  // new section - save to new file
-      // save new key
-      s = key + "=" + value;
-      tmpini.println(s);  // new section - save to new file
+      tmpini.println(); // one new line before section
+      tmpini.println("[" + section + "]");  // save new section
+      tmpini.println( key + "=" + value );  // save new key
+      res = true;
     }
 
     // save all to the end of file
@@ -191,8 +188,6 @@ String ini_write(String section, String key, String value) {
       s = ini_read_line();
       tmpini.println( s );
     }
-    // end of write file
-
   }
 
   // close ini files
@@ -202,7 +197,7 @@ String ini_write(String section, String key, String value) {
   SPIFFS.rename( tmpfile, inifile ); // tmpini is now ini
   ini_open(inifile);
 
-return "Rozmiar = "+ String(ini.size() );
+  return res;
 }
 
 
@@ -210,26 +205,3 @@ bool ini_close() {
   if (ini) ini.close();
   return true;
 }
-
-/*
-#include <string.h>
-#include "FS.h"
-
-
-void loop()
-{
-
-      f = SPIFFS.open(TESTFILE, "a");
-      if (!f) {
-        Serial.print("Unable To Open '");
-      } else {
-        Serial.print("Appending line to file '");
-        Serial.print(TESTFILE);
-        Serial.println("'");
-        Serial.println();
-        f.println("This line has been appended");
-        f.close();
-      }
-
-
-*/
