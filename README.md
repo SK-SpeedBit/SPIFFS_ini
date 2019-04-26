@@ -12,7 +12,8 @@
     
     It works on String variables.
     If you need to get a different type - just use the conversion.
-
+    Comments inside ini file are allowed; (starting # or ;). Empty lines too.
+    
     The readout time of a single variable is approx. 50 ms.
     The recording time is longer and is about 500ms.
     
