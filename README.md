@@ -15,7 +15,7 @@
 
     The readout time of a single variable is approx. 50 ms.
     The recording time is longer and is about 500ms.
-    Ini file approximately 1k, 80-100 lines.
+    Tested on ini file approximately 1k, 80-100 lines.
     This is due to the way of recording, which is focused on saving memory, not time.
 
     Tested on ESP12E (1MB + 3MB SPIFFS) CPU at 80MHz.
