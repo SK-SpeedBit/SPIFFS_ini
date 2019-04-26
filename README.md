@@ -1,8 +1,12 @@
 # SPIFFS_ini
 
+<div class="pull-right">
+  <img align="right" src="https://user-images.githubusercontent.com/33321284/56806055-224f1000-682b-11e9-9e86-b065917bcebc.png"/>
+</div>
+
     A small module for handling ini files.
     Based on the SPIFFS file system.
-    
+   
     It works just like in Windows.
     Only four functions:
     - opening the ini file:     ini_open (String ini_name);
