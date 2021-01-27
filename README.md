@@ -9,19 +9,21 @@
    
     It works just like in Windows.
     Only four functions:
-    - opening the ini file:     ini_open (String ini_name);
-    - reading from ini file:    ini_read (String section, String key, String default);
-    - writing to the ini file:  ini_write(String section, String key, String value);
-    - closing the ini file:     ini_close();  
+    - opening the ini file   : ini_open (String ini_name);
+    - key reading            : ini_read (String section, String key, String default);
+    - key writing            : ini_write(String section, String key, String value);
+    - key deletion           : ini_delete_key(String section, String key);
+    - section deletion       : ini_delete_section(String section);
+    - closing the ini file   : ini_close();  
     
     It works on String variables.
     If you need to get a different type - just use the conversion.
     Comments inside ini file are allowed; (starting # or ;). Empty lines too.
     
-    The readout time of a single variable is approx. 50 ms.
-    The recording time is longer and is about 500ms.
-    
-    This is due to the way of recording, which is focused on saving memory, not time.
-
-    Tested on ESP12E (1MB + 3MB SPIFFS) CPU at 80MHz.
-    Ini file approximately 1k, 80-100 lines.
+    ver. 2.0
+    Brand new version.
+    Very fast action.
+    All operations are performed in RAM!
+    Writing to disk is only after calling ini_close ().
+    Added procedures for deleting only the key or the entire section.
+  
