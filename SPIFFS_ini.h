@@ -1,6 +1,6 @@
 /*
-    ----------------------   SPIFFS_ini ver. 1.0  ----------------------
-      (c) 2019 SpeedBit, reg. Czestochowa, Poland
+    ----------------------   SPIFFS_ini ver. 2.0  ----------------------
+      (c) 2020 SpeedBit, reg. Czestochowa, Poland
     --------------------------------------------------------------------
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@
 bool   ini_open (String ini_name);
 String ini_read (String section, String key, String def);
 bool   ini_write(String section, String key, String value);
+bool   ini_delete_key(String section, String key);
+bool   ini_delete_section(String section);
 bool   ini_close();
 
 #endif // _SPIFFS_ini_
